@@ -7,6 +7,8 @@ import com.viajesapp.backend.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.viajesapp.backend.dto.RegisterRequest;
+import java.util.List;
 
 @Service
 public class UsuarioService {
@@ -20,34 +22,63 @@ public class UsuarioService {
     @Autowired
     private JwtService jwtService;
 
+    public List<Usuario> listarUsuarios() {
+        return usuarioRepository.findAll();
+    }
+
+    public Usuario buscarPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    public void borrarUsuario(Long id) {
+        usuarioRepository.deleteById(id);
+    }
+
+    public Usuario modificarUsuario(Long id, Usuario datosNuevos) {
+        Usuario usuario = buscarPorId(id);
+        usuario.setNombres(datosNuevos.getNombres());
+        usuario.setApellidos(datosNuevos.getApellidos());
+        usuario.setPais(datosNuevos.getPais());
+        return usuarioRepository.save(usuario);
+    }
+
     public Usuario guardarUsuario(Usuario usuario) {
-
-
         if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
             throw new RuntimeException("El email ya está registrado");
         }
-
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         return usuarioRepository.save(usuario);
-
     }
 
     public AuthResponse login(String email, String password) {
-
-        email = email.trim();
-        password = password.trim();
-
-        Usuario usuario = usuarioRepository.findByEmail(email)
+        Usuario usuario = usuarioRepository.findByEmail(email.trim())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        if (!passwordEncoder.matches(password, usuario.getPassword())) {
+        if (!passwordEncoder.matches(password.trim(), usuario.getPassword())) {
             throw new RuntimeException("Contraseña incorrecta");
         }
 
         String token = jwtService.generateToken(email);
-
         usuario.setPassword(null);
-
         return new AuthResponse(token, usuario);
+    }
+
+    public Usuario registrarUsuario(RegisterRequest request) {
+    if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
+        throw new RuntimeException("El email ya está registrado");
+    }
+
+    Usuario nuevoUsuario = new Usuario();
+    nuevoUsuario.setNombres(request.getNombres());
+    nuevoUsuario.setApellidos(request.getApellidos());
+    nuevoUsuario.setEmail(request.getEmail());
+    nuevoUsuario.setPais(request.getPais());
+    nuevoUsuario.setTipoDocumento(request.getTipoDocumento());
+    nuevoUsuario.setNumeroDocumento(request.getNumeroDocumento());
+
+    nuevoUsuario.setPassword(passwordEncoder.encode(request.getPassword()));
+
+    return usuarioRepository.save(nuevoUsuario);
     }
 }
