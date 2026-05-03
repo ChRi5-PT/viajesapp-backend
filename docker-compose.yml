@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  db-usuarios:
+    image: mysql:8
+    container_name: db-usuarios
+    restart: always
+    environment:
+      MYSQL_DATABASE: backend_db
+      MYSQL_USER: springuser
+      MYSQL_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    container_name: backend-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      db-usuarios:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
