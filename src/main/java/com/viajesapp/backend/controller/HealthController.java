@@ -1,24 +1,21 @@
 package com.viajesapp.backend.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
+@RequestMapping("/health")
 public class HealthController {
 
-    @GetMapping("/health")
+    @GetMapping
     public ResponseEntity<Map<String, String>> healthCheck() {
-        Map<String, String> status = new HashMap<>();
-        status.put("status", "up");
-        status.put("service", "ms-usuarios");
-        status.put("database", "connected");responde
-        
-        return ResponseEntity.ok(status);
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "UP");
+        return ResponseEntity.ok(response);
     }
 }
